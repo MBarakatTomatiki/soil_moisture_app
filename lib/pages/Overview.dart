@@ -47,15 +47,15 @@ class _OverviewState extends State<Overview> {
     }, onError: (_) {
       Scaffold.of(context).showSnackBar(FailureOnRefresh().build(context));
     });
-    setState(() {});
     // Debug Print
-    if (isCurrentDataGot) {
+    if (nowPlantList.isNotEmpty) {
       print('Overview refresh got: ${nowPlantList[0].getLastValue}');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    latData = latData ?? fetchLatestData();
     return SafeArea(
       minimum: EdgeInsets.symmetric(horizontal: appWidth(context) * 0.03),
       child: RefreshIndicator(
@@ -96,46 +96,44 @@ class Page extends StatelessWidget {
               ? MoistureRadialIndicator()
               : NoNowData(haveInternet: true),
         ),
-        Container(
-          height: appWidth(context) * 0.12,
-          child: (isCurrentDataGot)
-              ? Card(
-                  margin: EdgeInsets.symmetric(
-                      horizontal: appWidth(context) * 0.07),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: <Widget>[
-                      AvatarData(
-                          'Current Humidity',
-                          nowHumid.getLastValue,
-                          nowHumid.getUnit,
-                          FontAwesomeIcons.tint,
-                          Colors.blue[300]),
-                      AvatarData(
-                          'Current Illuminance',
-                          nowLight.getLastValue,
-                          nowLight.getUnit,
-                          FontAwesomeIcons.lightbulb,
-                          Colors.amber[400]),
-                      AvatarData(
-                          'Current Temperature',
-                          nowTemp.getLastValue,
-                          nowTemp.getUnit,
-                          FontAwesomeIcons.thermometerHalf,
-                          Colors.red[400])
-                    ],
-                  ),
-                )
-              : SizedBox(),
-        ),
+        if (nowPlantList.isNotEmpty)
+          Container(
+            height: appWidth(context) * 0.12,
+            child: Card(
+              margin:
+                  EdgeInsets.symmetric(horizontal: appWidth(context) * 0.07),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: <Widget>[
+                  AvatarData(
+                      'Current Humidity',
+                      nowHumid.getLastValue,
+                      nowHumid.getUnit,
+                      FontAwesomeIcons.tint,
+                      Colors.blue[300]),
+                  AvatarData(
+                      'Current Illuminance',
+                      nowLight.getLastValue,
+                      nowLight.getUnit,
+                      FontAwesomeIcons.lightbulb,
+                      Colors.amber[400]),
+                  AvatarData(
+                      'Current Temperature',
+                      nowTemp.getLastValue,
+                      nowTemp.getUnit,
+                      FontAwesomeIcons.thermometerHalf,
+                      Colors.red[400])
+                ],
+              ),
+            ),
+          ),
         SizedBox(
           height: appWidth(context) * 0.02,
         ),
-        (isCurrentDataGot)
-            ? PlantGridView(
-                plantlist: nowPlantList,
-              )
-            : SizedBox(),
+        if (nowPlantList.isNotEmpty)
+          PlantGridView(
+            plantlist: nowPlantList,
+          ),
         SizedBox(
           height: appWidth(context) * 0.03,
         )
