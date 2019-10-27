@@ -45,3 +45,21 @@ class Plant {
   num get getLastValue => (this._values == null) ? _latestVal : _values.last;
   String get getUnit => this._unit;
 }
+
+// * Create a list of plant objects from a single json object depicting current data
+List<Plant> nowListFromJson(Map<String, dynamic> jsonData) {
+  List<Plant> temp = [];
+  jsonData.forEach((k, v) {
+    temp.add(Plant.createLatest(k, double.parse(v.toString())));
+  });
+  return temp;
+}
+
+// * Create a list of plant objects from a single json object depicting total data
+List<Plant> totalListFromJson(Map<String, dynamic> jsonData) {
+  List<Plant> temp = [];
+  jsonData.forEach((k, v) {
+    temp.add(Plant.createElement(k, v.cast<num>()));
+  });
+  return temp;
+}

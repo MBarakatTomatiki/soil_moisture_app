@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 // * External packages import
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:soil_moisture_app/states/data_fetch_state.dart';
 
 // * State import
 import 'package:soil_moisture_app/states/selected_card_state.dart';
@@ -49,7 +50,7 @@ class _AnalysisState extends State<Analysis> {
 
   void _initChart(String newMeasure) {
     this._measure = newMeasure;
-    if (isDataGot) {
+    if (plantList != null) {
       switch (_measure) {
         case 'Humidity':
           _chartObj = dayHumid;
@@ -63,17 +64,15 @@ class _AnalysisState extends State<Analysis> {
         case 'Moisture':
           _chartObj =
               plantList[Provider.of<SelectedCardState>(context).selCard];
-          break;
+          // Debug Print
+          print(_chartObj.getAllValues);
+          print(_measure);
       }
-      // Debug Print
-      print(_chartObj.getAllValues);
-      print(_measure);
     }
   }
 
   void _fetchForDate() {
-    totData = _refresh();
-    setState(() {});
+    Provider.of<DataState>(context).refreshTotalData();
   }
 
   Future<void> _pickDate(BuildContext context) async {
@@ -89,32 +88,40 @@ class _AnalysisState extends State<Analysis> {
     }
   }
 
-  Future<void> _refresh() async {
-    totData = fetchTotalData();
-    await totData.then((_) {
-      if (mounted) {
-        setState(() {
-          _initChart(_measure);
-        });
-      }
-      if (isNow()) {
-        latData = fetchLatestData();
-      }
-    }, onError: (_) {
-      Scaffold.of(context).showSnackBar(FailureOnRefresh().build(context));
-    });
-    // Debug Print
-    if (isDataGot) {
-      print('analysis refresh got: ${plantList[0].getLastValue}');
-    }
-  }
+  // Future<void> _refresh() async {
+  //   totData = fetchTotalData();
+  //   await totData.then((_) {
+  //     if (mounted) {
+  //       setState(() {
+  //         _initChart(_measure);
+  //       });
+  //     }
+  //     if (isNow()) {
+  //       latData = fetchLatestData();
+  //     }
+  //   }, onError: (_) {
+  //     Scaffold.of(context).showSnackBar(FailureOnRefresh().build(context));
+  //   });
+  //   // Debug Print
+  //   // if (isDataGot) {
+  //   //   print('analysis refresh got: ${plantList[0].getLastValue}');
+  //   // }
+  // }
 
   @override
   Widget build(BuildContext context) {
+    var dataState = Provider.of<DataState>(context);
+    _initChart(this._measure);
     return SafeArea(
       minimum: EdgeInsets.symmetric(horizontal: appWidth(context) * 0.03),
       child: RefreshIndicator(
-        onRefresh: _refresh,
+        onRefresh: () => dataState.refreshTotalData().then((_) {
+          Scaffold.of(context).removeCurrentSnackBar();
+          Scaffold.of(context).showSnackBar((dataState.isTotalDataGot
+                  ? SuccessOnRefresh()
+                  : FailureOnRefresh())
+              .build(context));
+        }),
         child: ListView(
           physics:
               AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
@@ -124,75 +131,59 @@ class _AnalysisState extends State<Analysis> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  FutureBuilder(
-                    future: totData,
-                    builder: (context, AsyncSnapshot snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        _initChart(this._measure);
-                        return (isDataGot)
-                            ? Container(
-                                height: appWidth(context) * 0.215,
-                                alignment: Alignment.center,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Row(
-                                      children: <Widget>[
-                                        Text(
-                                          (_chartObj.getLastValue *
-                                                  ((_measure == 'Moisture')
-                                                      ? 100
-                                                      : 1))
-                                              .toStringAsFixed(1),
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .display2
-                                              .copyWith(
-                                                color: (Provider.of<ThemeState>(
-                                                            context)
-                                                        .isDarkTheme)
-                                                    ? Theme.of(context)
-                                                        .accentColor
-                                                    : appSecondaryDarkColor,
-                                                fontSize:
-                                                    appWidth(context) * 0.09,
-                                              ),
-                                        ),
-                                        Text(
-                                          '${_chartObj.getUnit}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .body1
-                                              .copyWith(
-                                                fontSize:
-                                                    appWidth(context) * 0.06,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      'On $fetchDateEEEMMMd',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .body2
-                                          .copyWith(
-                                            fontSize: appWidth(context) * 0.025,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : SizedBox(
-                                height: appWidth(context) * 0.215,
-                              );
-                      } else {
-                        return SizedBox(
+                  (plantList != null)
+                      ? Container(
                           height: appWidth(context) * 0.215,
-                        );
-                      }
-                    },
-                  ),
+                          alignment: Alignment.center,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Row(
+                                children: <Widget>[
+                                  Text(
+                                    (_chartObj.getLastValue *
+                                            ((_measure == 'Moisture')
+                                                ? 100
+                                                : 1))
+                                        .toStringAsFixed(1),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .display2
+                                        .copyWith(
+                                          color:
+                                              (Provider.of<ThemeState>(context)
+                                                      .isDarkTheme)
+                                                  ? Theme.of(context)
+                                                      .accentColor
+                                                  : appSecondaryDarkColor,
+                                          fontSize: appWidth(context) * 0.09,
+                                        ),
+                                  ),
+                                  Text(
+                                    '${_chartObj.getUnit}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .body1
+                                        .copyWith(
+                                          fontSize: appWidth(context) * 0.06,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                'On $fetchDateEEEMMMd',
+                                style:
+                                    Theme.of(context).textTheme.body2.copyWith(
+                                          fontSize: appWidth(context) * 0.025,
+                                        ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : SizedBox(
+                          height: appWidth(context) * 0.215,
+                        ),
                   Container(
                     padding: EdgeInsets.only(right: appWidth(context) * 0.02),
                     height: appWidth(context) * 0.1,
@@ -252,25 +243,32 @@ class _AnalysisState extends State<Analysis> {
             Container(
               height: appWidth(context) * 0.6,
               child: Card(
-                child: FutureBuilder(
-                    future: totData,
-                    builder: (context, AsyncSnapshot snapshot) {
-                      // Debug Print
-                      print(snapshot);
-                      if (snapshot.hasError) {
-                        return NoNowData(isScrollable: false);
-                      } else if (snapshot.connectionState ==
-                          ConnectionState.done) {
-                        return (isDataGot)
-                            ? displayChart(_chartObj, _measure, context)
-                            : NoData();
-                      } else {
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      }
-                    }),
-              ),
+                  child: (dataState.isTotalDataGot == null)
+                      ? Center(child: CircularProgressIndicator())
+                      : (dataState.isTotalDataGot)
+                          ? (plantList != null && plantList.isNotEmpty)
+                              ? displayChart(_chartObj, _measure, context)
+                              : NoData()
+                          : NoNowData(isScrollable: false)
+                  // FutureBuilder(
+                  //     future: totData,
+                  //     builder: (context, AsyncSnapshot snapshot) {
+                  //       // Debug Print
+                  //       print(snapshot);
+                  //       if (snapshot.hasError) {
+                  //         return NoNowData(isScrollable: false);
+                  //       } else if (snapshot.connectionState ==
+                  //           ConnectionState.done) {
+                  //         return (isDataGot)
+                  //             ? displayChart(_chartObj, _measure, context)
+                  //             : NoData();
+                  //       } else {
+                  //         return Center(
+                  //           child: CircularProgressIndicator(),
+                  //         );
+                  //       }
+                  //     }),
+                  ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -316,19 +314,21 @@ class _AnalysisState extends State<Analysis> {
             SizedBox(
               height: appWidth(context) * 0.01,
             ),
-            FutureBuilder(
-              future: totData,
-              builder: (context, AsyncSnapshot snapshot) {
-                if (snapshot.connectionState == ConnectionState.done &&
-                    isDataGot) {
-                  return PlantGridView(
-                    plantlist: plantList,
-                  );
-                } else {
-                  return SizedBox();
-                }
-              },
-            ),
+            if (plantList != null)
+              PlantGridView(
+                plantlist: plantList,
+              ),
+            // FutureBuilder(
+            //   future: totData,
+            //   builder: (context, AsyncSnapshot snapshot) {
+            //     if (snapshot.connectionState == ConnectionState.done &&
+            //         isDataGot) {
+            //       return ;
+            //     } else {
+            //       return SizedBox();
+            //     }
+            //   },
+            // ),
             SizedBox(
               height: appWidth(context) * 0.03,
             )

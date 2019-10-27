@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:soil_moisture_app/states/data_fetch_state.dart';
 
 // * States import
 import 'package:soil_moisture_app/states/selected_card_state.dart';
@@ -31,53 +32,23 @@ import 'package:soil_moisture_app/data/all_data.dart';
 import 'package:soil_moisture_app/ui/plant_grid_view.dart';
 import 'package:soil_moisture_app/ui/refresh_snackbar.dart';
 
-class Overview extends StatefulWidget {
-  @override
-  _OverviewState createState() => _OverviewState();
-}
-
-class _OverviewState extends State<Overview> {
-  Future<void> _refresh() async {
-    latData = fetchLatestData();
-    await latData.then((_) {
-      Scaffold.of(context).showSnackBar(SuccessOnRefresh().build(context));
-      if (isNow()) {
-        totData = fetchTotalData();
-      }
-    }, onError: (_) {
-      Scaffold.of(context).showSnackBar(FailureOnRefresh().build(context));
-    });
-    // Debug Print
-    if (nowPlantList.isNotEmpty) {
-      print('Overview refresh got: ${nowPlantList[0].getLastValue}');
-    }
-  }
-
+class Overview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    latData = latData ?? fetchLatestData();
+    var dataState = Provider.of<DataState>(context);
     return SafeArea(
       minimum: EdgeInsets.symmetric(horizontal: appWidth(context) * 0.03),
       child: RefreshIndicator(
-        onRefresh: _refresh,
-        child: FutureBuilder(
-          future: latData,
-          builder: (context, AsyncSnapshot snapshot) {
-            // Debug print
-            print(snapshot);
-            if (snapshot.hasError) {
-              return NoNowData();
-            } else if (snapshot.connectionState == ConnectionState.done) {
-              // * async load threshold data
-              threshData = threshData ?? fetchThresholdData();
-              // * async load full data for Analysis
-              totData = totData ?? fetchTotalData();
-              return Page();
-            } else {
-              return Skeleton();
-            }
-          },
-        ),
+        onRefresh: () => dataState.refreshLatestData().then((_) {
+          Scaffold.of(context).removeCurrentSnackBar();
+          Scaffold.of(context).showSnackBar((dataState.isCurrentDataGot
+                  ? SuccessOnRefresh()
+                  : FailureOnRefresh())
+              .build(context));
+        }),
+        child: (dataState.isCurrentDataGot == null)
+            ? Skeleton()
+            : (dataState.isCurrentDataGot) ? Page() : NoNowData(),
       ),
     );
   }
@@ -91,12 +62,12 @@ class Page extends StatelessWidget {
       children: <Widget>[
         Padding(
           padding: EdgeInsets.symmetric(vertical: appWidth(context) * 0.03),
-          child: (nowPlantList.isNotEmpty)
+          child: (nowPlantList != null && nowPlantList.isNotEmpty)
               // * would show only if today's data is available
               ? MoistureRadialIndicator()
               : NoNowData(haveInternet: true),
         ),
-        if (nowPlantList.isNotEmpty)
+        if (nowPlantList?.isNotEmpty)
           Container(
             height: appWidth(context) * 0.12,
             child: Card(
@@ -130,7 +101,7 @@ class Page extends StatelessWidget {
         SizedBox(
           height: appWidth(context) * 0.02,
         ),
-        if (nowPlantList.isNotEmpty)
+        if (nowPlantList?.isNotEmpty)
           PlantGridView(
             plantlist: nowPlantList,
           ),

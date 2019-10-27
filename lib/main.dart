@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 
 // * Prefs import
 import 'package:soil_moisture_app/prefs/user_prefs.dart';
+import 'package:soil_moisture_app/states/chart_state.dart';
+import 'package:soil_moisture_app/states/data_fetch_state.dart';
 import 'package:soil_moisture_app/states/selected_card_state.dart';
 
 // * State import
@@ -14,6 +16,7 @@ import 'package:soil_moisture_app/ui/build_theme.dart';
 // * ui import
 import 'package:soil_moisture_app/ui/colors.dart';
 import 'package:soil_moisture_app/ui/options.dart';
+import 'package:soil_moisture_app/utils/json_post_get.dart';
 
 // * utils import
 import 'package:soil_moisture_app/utils/sizes.dart';
@@ -31,6 +34,9 @@ void main() async {
       ),
       ChangeNotifierProvider<SelectedCardState>(
         builder: (context) => SelectedCardState(),
+      ),
+      ChangeNotifierProvider<DataState>(
+        builder: (context) => DataState(),
       ),
     ],
     child: Root(),
@@ -53,7 +59,10 @@ class Root extends StatelessWidget {
 class Home extends StatelessWidget {
   final List<Widget> _children = [
     Overview(),
-    Analysis(),
+    ChangeNotifierProvider<ChartState>(
+      builder: (_) => ChartState(),
+      child: Analysis(),
+    ),
   ];
 
   @override

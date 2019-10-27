@@ -5,6 +5,7 @@
 */
 
 import 'package:http/http.dart' as http;
+import 'package:soil_moisture_app/states/data_fetch_state.dart';
 import 'dart:convert';
 import 'dart:async';
 
@@ -72,17 +73,12 @@ Future<Map<String, dynamic>> postThreshold(Map<String, dynamic> data) async {
 
 // * Add total data for a day received from API
 void addData(Map<String, dynamic> data) {
-  isDataGot = false;
   // Debug print
   print(data);
-  plantList = [];
   if (data['records'].isEmpty) {
     return null;
   }
-  isDataGot = true;
-  data['records'][0]['moisture'].forEach((k, v) {
-    plantList.add(Plant.createElement(k, v.cast<num>()));
-  });
+  plantList = totalListFromJson(data['records'][0]['moisture']);
   dayHumid = Humidity.fromJson(data['records'][0]);
   dayTemp = Temp.fromJson(data['records'][0]);
   dayLight = Light.fromJson(data['records'][0]);
@@ -90,17 +86,12 @@ void addData(Map<String, dynamic> data) {
 
 // * Add current data received from API
 void addLatestData(Map<String, dynamic> data) {
-  isCurrentDataGot = false;
   // Debug print
   print(data);
-  nowPlantList = [];
   if (data == null) {
     return null;
   }
-  isCurrentDataGot = true;
-  data['moisture'].forEach((k, v) {
-    nowPlantList.add(Plant.createLatest(k, double.parse(v.toString())));
-  });
+  nowPlantList = nowListFromJson(data['moisture']);
   nowLight = Light.createLatest(data['light']);
   nowHumid = Humidity.createLatest(data['humidity']);
   nowTemp = Temp.createLatest(data['temparature']);
@@ -127,18 +118,19 @@ void addThresholdData(Map<String, dynamic> data) {
 // * fetch total data from API
 Future<void> fetchTotalData() async {
   print(fetchDateddmmyyyy);
-  await fetchJsonData().then((onValue) => addData(onValue));
+  return await fetchJsonData().then((onValue) => addData(onValue));
 }
 
 // * fetch current data from API
 Future<void> fetchLatestData() async {
   print('Fetching Now');
-  await fetchJsonData(latest: true).then((onValue) => addLatestData(onValue));
+  return await fetchJsonData(latest: true)
+      .then((onValue) => addLatestData(onValue));
 }
 
 // * get Threshold values from API
 Future<void> fetchThresholdData() async {
   print('Fetching Threshold Values');
-  await fetchJsonData(altUrl: '$baseUrl/getpump')
+  return await fetchJsonData(altUrl: '$baseUrl/getpump')
       .then((onValue) => addThresholdData(onValue));
 }

@@ -6,13 +6,13 @@ import 'package:soil_moisture_app/data/light_class.dart';
 import 'package:soil_moisture_app/data/threshold_class.dart';
 
 // * Define Data Objects to be used throughout the app
-List<Plant> plantList = [];
+List<Plant> plantList;
 Light dayLight;
 Temp dayTemp;
 Humidity dayHumid;
 
 // * Latest Data objects to be used in Overview
-List<Plant> nowPlantList = [];
+List<Plant> nowPlantList;
 Light nowLight;
 Temp nowTemp;
 Humidity nowHumid;
