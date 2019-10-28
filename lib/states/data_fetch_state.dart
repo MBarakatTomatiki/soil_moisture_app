@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:soil_moisture_app/data/all_data.dart';
+import 'package:soil_moisture_app/utils/date_func.dart';
 
 // * utils import
 import 'package:soil_moisture_app/utils/json_post_get.dart';
@@ -24,6 +25,7 @@ class DataState with ChangeNotifier {
       this.thresholdData = fetchThresholdData();
     }, onError: (_) {
       this.isCurrentDataGot = false;
+      this.isTotalDataGot = false;
       notifyListeners();
     });
   }
@@ -33,6 +35,10 @@ class DataState with ChangeNotifier {
     await latestData.then((_) {
       this.isCurrentDataGot = true;
       notifyListeners();
+      if (isNow()) {
+        totalData = fetchTotalData();
+        notifyListeners();
+      }
     }, onError: ((_) {
       this.isCurrentDataGot = false;
       if (nowPlantList != null && nowPlantList.isEmpty) {
@@ -48,6 +54,10 @@ class DataState with ChangeNotifier {
     await totalData.then((_) {
       this.isTotalDataGot = true;
       notifyListeners();
+      if (isNow()) {
+        latestData = fetchLatestData();
+        notifyListeners();
+      }
     }, onError: ((_) {
       this.isTotalDataGot = false;
       if (plantList != null && plantList.isEmpty) {

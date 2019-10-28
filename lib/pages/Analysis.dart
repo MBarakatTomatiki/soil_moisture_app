@@ -50,7 +50,7 @@ class _AnalysisState extends State<Analysis> {
 
   void _initChart(String newMeasure) {
     this._measure = newMeasure;
-    if (plantList != null) {
+    if (plantList != null && plantList.isNotEmpty) {
       switch (_measure) {
         case 'Humidity':
           _chartObj = dayHumid;
@@ -131,7 +131,7 @@ class _AnalysisState extends State<Analysis> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  (plantList != null)
+                  (plantList != null && plantList.isNotEmpty)
                       ? Container(
                           height: appWidth(context) * 0.215,
                           alignment: Alignment.center,
@@ -314,7 +314,7 @@ class _AnalysisState extends State<Analysis> {
             SizedBox(
               height: appWidth(context) * 0.01,
             ),
-            if (plantList != null)
+            if (plantList?.isNotEmpty)
               PlantGridView(
                 plantlist: plantList,
               ),

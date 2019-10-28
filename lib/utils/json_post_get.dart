@@ -21,12 +21,12 @@ import 'package:soil_moisture_app/data/threshold_class.dart';
 import 'package:soil_moisture_app/data/all_data.dart';
 
 // * determines if any data is got from the API
-bool isDataGot = false;
-bool isCurrentDataGot = false;
+// bool isDataGot = false;
+// bool isCurrentDataGot = false;
 
 // * variables for caching response
-Future latData = fetchLatestData();
-Future totData = fetchTotalData();
+// Future latData = fetchLatestData();
+// Future totData = fetchTotalData();
 Future threshData = fetchThresholdData();
 
 // * Fetch from API
@@ -73,9 +73,11 @@ Future<Map<String, dynamic>> postThreshold(Map<String, dynamic> data) async {
 
 // * Add total data for a day received from API
 void addData(Map<String, dynamic> data) {
+  plantList = null;
   // Debug print
   print(data);
   if (data['records'].isEmpty) {
+    plantList = [];
     return null;
   }
   plantList = totalListFromJson(data['records'][0]['moisture']);
@@ -86,9 +88,11 @@ void addData(Map<String, dynamic> data) {
 
 // * Add current data received from API
 void addLatestData(Map<String, dynamic> data) {
+  nowPlantList = null;
   // Debug print
   print(data);
   if (data == null) {
+    nowPlantList = [];
     return null;
   }
   nowPlantList = nowListFromJson(data['moisture']);
@@ -107,7 +111,7 @@ void addThresholdData(Map<String, dynamic> data) {
   * entry(object) is appended to the 'pumpList' with a value of '0.0'. If current data is not available, the
   * fetched threshold data itself is used.
   */
-  var length = (isCurrentDataGot && (nowPlantList.length > data.length))
+  var length = (nowPlantList != null && nowPlantList.length > data.length)
       ? nowPlantList.length
       : data.length;
   for (var i = 0; i < length; i++) {

@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 
 // * Externa Packages Import
 import 'package:provider/provider.dart';
+import 'package:soil_moisture_app/states/data_fetch_state.dart';
 
 // * State Import
 import 'package:soil_moisture_app/states/theme_state.dart';
@@ -39,7 +40,7 @@ class _ThresholdPumpState extends State<ThresholdPump> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: threshData,
+      future: Provider.of<DataState>(context).thresholdData,
       builder: (context, AsyncSnapshot snapshot) {
         // Debug print
         print(snapshot);
