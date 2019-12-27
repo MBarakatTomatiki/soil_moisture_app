@@ -30,13 +30,13 @@ void main() async {
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider<ThemeState>(
-        builder: (context) => ThemeState(),
+        create: (context) => ThemeState(),
       ),
       ChangeNotifierProvider<SelectedCardState>(
-        builder: (context) => SelectedCardState(),
+        create: (context) => SelectedCardState(),
       ),
       ChangeNotifierProvider<DataState>(
-        builder: (context) => DataState(),
+        create: (context) => DataState(),
       ),
     ],
     child: Root(),
@@ -60,7 +60,7 @@ class Home extends StatelessWidget {
   final List<Widget> _children = [
     Overview(),
     ChangeNotifierProvider<ChartState>(
-      builder: (_) => ChartState(),
+      create: (_) => ChartState(),
       child: Analysis(),
     ),
   ];
