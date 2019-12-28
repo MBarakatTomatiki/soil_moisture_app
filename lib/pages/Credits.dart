@@ -7,6 +7,7 @@
 */
 
 import 'package:flutter/material.dart';
+import 'package:soil_moisture_app/data/static_data.dart';
 
 // * States import
 import 'package:soil_moisture_app/states/theme_state.dart';

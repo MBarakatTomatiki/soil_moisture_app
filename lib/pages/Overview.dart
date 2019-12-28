@@ -41,14 +41,13 @@ class Overview extends StatelessWidget {
       child: RefreshIndicator(
         onRefresh: () => dataState.refreshLatestData().then((_) {
           Scaffold.of(context).removeCurrentSnackBar();
-          Scaffold.of(context).showSnackBar((dataState.isCurrentDataGot
-                  ? SuccessOnRefresh()
-                  : FailureOnRefresh())
-              .build(context));
+          Scaffold.of(context).showSnackBar(
+              (nowData != null ? SuccessOnRefresh() : FailureOnRefresh())
+                  .build(context));
         }),
-        child: (dataState.isCurrentDataGot == null)
+        child: (nowData == null)
             ? Skeleton()
-            : (dataState.isCurrentDataGot) ? Page() : NoNowData(),
+            : (nowData.plantList.isNotEmpty) ? Page() : NoNowData(),
       ),
     );
   }
